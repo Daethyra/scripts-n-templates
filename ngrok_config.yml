@@ -1,0 +1,21 @@
+version: "2"
+authtoken: 
+api_key: 
+connect_timeout: 30s
+console_ui: iftty
+console_ui_color: black
+heartbeat_interval: 1m
+heartbeat_tolerance: 90s
+log_format: term
+region: us
+tunnels:
+  testcloud:
+    proto: http
+    addr: 8888
+    oauth:
+      provider: google
+    inspect: true
+    schemes:
+      - https
+    host_header: "https://ligma-chugma.ngrok-free.app"
+    domain: ligma-chugma.ngrok-free.app

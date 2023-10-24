@@ -16,6 +16,7 @@ EXAMPLE CONFIG FILE:
 }
 """
 
+import os
 import json
 import re
 import argparse

@@ -19,6 +19,7 @@ EXAMPLE CONFIG FILE:
 import json
 import re
 import argparse
+import datetime
 from typing import List, Optional, Dict, Union
 
 class RegexGenerator:
@@ -64,19 +65,45 @@ class RegexGenerator:
             regex_pattern: The regex pattern to save.
         """
         try:
-            # Load existing data from the JSON file
-            with open('regex_pattern.json', 'r') as f:
-                existing_data = json.load(f)
-            patterns = existing_data.get('regex_patterns', [])
-        except FileNotFoundError:
-            patterns = []
+            try:
+                # Load existing data from the JSON file
+                with open('regex_pattern.json', 'r') as f:
+                    existing_data = json.load(f)
+                patterns = existing_data.get('regex_patterns', [])
+            except FileNotFoundError:
+                patterns = []
             
-        # Append the new pattern
-        patterns.append(regex_pattern)
+            # Append the new pattern
+            patterns.append(regex_pattern)
 
-        # Save the updated data back to the JSON file
-        with open('regex_pattern.json', 'w') as f:
-            json.dump({'regex_patterns': patterns}, f)
+            # Ask the user for saving preferences
+            while True:
+                try:
+                    choice = input("Do you want to save the pattern? (y/n): ").strip().lower()
+                    if choice == 'y':
+                        break
+                    elif choice == 'n':
+                        return
+                except KeyboardInterrupt:
+                    continue
+            
+            while True:
+                try:
+                    choice = input("Append to latest file or create a new file with a timestamp? (a/n): ").strip().lower()
+                    if choice == 'a':
+                        file_name = 'regex_pattern.json'
+                        break
+                    elif choice == 'n':
+                        file_name = f"regex_pattern_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                        break
+                except KeyboardInterrupt:
+                    continue
+
+            # Save the updated data back to the chosen JSON file
+            with open(file_name, 'w') as f:
+                json.dump({'regex_patterns': patterns}, f)
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
     def load_from_file(self, file_path: str) -> Optional[Dict[str, Union[str, List[str]]]]:
         """

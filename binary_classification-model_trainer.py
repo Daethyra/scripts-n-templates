@@ -11,6 +11,8 @@ class ModelTrainer:
     def __init__(self):
         load_dotenv()
         self.data_path = os.getenv('TRAINING_DATA_PATH')
+        if not self.data_path or not os.path.exists(self.data_path):
+            raise ValueError("TRAINING_DATA_PATH environment variable is missing or the file does not exist.")
         self.model = self.build_model()
 
     def build_model(self):
@@ -22,6 +24,20 @@ class ModelTrainer:
         return model
 
     def load_data(self):
+        if not os.path.exists(self.data_path):
+            raise FileNotFoundError(f"The data file {self.data_path} does not exist.")
+    
+        try:
+            data = pd.read_csv(self.data_path)
+        except Exception as e:
+            raise IOError(f"Error reading the data file: {e}")
+    
+        if 'text' not in data.columns or 'label' not in data.columns:
+            raise ValueError("Data file must contain 'text' and 'label' columns.")
+    
+        X = data['text']
+        y = data['label']
+        return X, y
         data = pd.read_csv(self.data_path)
         X = data['text']
         y = data['label']
@@ -34,14 +50,20 @@ class ModelTrainer:
 
         # Preprocess X_train, X_val, X_test as needed
 
-        self.model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=10, batch_size=32)
+
+        try:
+            self.model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=10, batch_size=32)
+            evaluation = self.model.evaluate(X_test, y_test)
+            print("Evaluation Results:", evaluation)
+        except Exception as e:
+            raise RuntimeError(f"Error during model training or evaluation: {e}")
 
         # Evaluate the model
         evaluation = self.model.evaluate(X_test, y_test)
         print("Evaluation Results:", evaluation)
 
         # Save the model
-        self.model.save(f'CyberSentinel_{pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")}.h5')
+        self.model.save(f'MyBinaryClassificationModel_{pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")}.h5')
 
 if __name__ == "__main__":
     trainer = ModelTrainer()

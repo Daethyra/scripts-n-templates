@@ -1,71 +1,94 @@
-Here is the complete script to purge Docker data by resetting the WSL integration:
+<#
+.SYNOPSIS
+This module provides functions to reset Docker WSL integration.
 
-```powershell
-# Functions to reset Docker WSL integration
+.DESCRIPTION
+The module includes functions to stop Docker Desktop, shut down WSL, and unregister Docker WSL data.
+
+.NOTES
+Version:        1.0
+Author:         Daethyra
+#>
 
 function Stop-DockerDesktop {
+    <#
+    .SYNOPSIS
+    Stops the Docker Desktop process.
 
-  Get-Process -Name DockerDesktop | Stop-Process
+    .DESCRIPTION
+    Attempts to stop the Docker Desktop process. Writes an error if the process cannot be stopped.
+    #>
 
-  if(!$?) {
-    Write-Error "Error stopping Docker Desktop process"
-  }
-
+    try {
+        Get-Process -Name DockerDesktop | Stop-Process -ErrorAction Stop
+        Write-Verbose "Docker Desktop process stopped successfully."
+    }
+    catch {
+        Write-Error "Error stopping Docker Desktop process: $_"
+    }
 }
 
 function Shutdown-Wsl {
-  
-  $maxRetries = 3
+    <#
+    .SYNOPSIS
+    Shuts down the Windows Subsystem for Linux (WSL).
 
-  for ($i = 0; $i -lt $maxRetries; $i++) {
-    wsl --shutdown
-    
-    if($?) {
-      Write-Host "WSL shut down successfully" 
-      break
+    .DESCRIPTION
+    Tries to shut down WSL up to a maximum number of retries.
+    #>
+
+    param (
+        [int]$maxRetries = 3
+    )
+
+    for ($i = 0; $i -lt $maxRetries; $i++) {
+        wsl --shutdown
+        if ($?) {
+            Write-Verbose "WSL shut down successfully on attempt $($i + 1)."
+            return
+        }
+        else {
+            Write-Warning "WSL shutdown attempt $($i + 1) failed. Retrying..."
+            Start-Sleep -Seconds 2
+        }
     }
-    else {
-      Write-Warning "Retrying WSL shutdown"
-      Start-Sleep -Seconds 2 
-    }
 
-  }
-
+    Write-Error "Failed to shut down WSL after $maxRetries attempts."
 }
 
 function Unregister-DockerWsl {
+    <#
+    .SYNOPSIS
+    Unregisters the docker-desktop-data from WSL.
 
-  wsl --unregister docker-desktop-data
+    .DESCRIPTION
+    Attempts to unregister the docker-desktop-data. Writes an error if the operation fails.
+    #>
 
-  if(!$?) {
-    Write-Error "Error unregistering docker-desktop-data" 
-  }
-  else {
-    Write-Host "Unregistered docker-desktop-data successfully"
-  }
-
+    try {
+        wsl --unregister docker-desktop-data -ErrorAction Stop
+        Write-Verbose "Unregistered docker-desktop-data successfully."
+    }
+    catch {
+        Write-Error "Error unregistering docker-desktop-data: $_"
+    }
 }
-
 
 # Main script
-
 try {
+    Write-Verbose "Starting Docker WSL integration reset process."
 
-  Write-Host "Stopping Docker Desktop"
-  Stop-DockerDesktop
+    Write-Verbose "Stopping Docker Desktop"
+    Stop-DockerDesktop
 
-  Write-Host "Shutting down WSL" 
-  Shutdown-Wsl
+    Write-Verbose "Shutting down WSL"
+    Shutdown-Wsl
 
-  Write-Host "Unregistering docker-desktop-data"
-  Unregister-DockerWsl
+    Write-Verbose "Unregistering docker-desktop-data"
+    Unregister-DockerWsl
 
-  Write-Host "Docker WSL integration successfully reset"
-
+    Write-Host "Docker WSL integration successfully reset"
 }
 catch {
-  Write-Error "Reset failed: $_"
+    Write-Error "Reset failed: $_"
 }
-```
-
-Let me know if you would like any changes or have any other suggestions!

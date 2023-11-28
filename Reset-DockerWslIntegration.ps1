@@ -20,11 +20,11 @@ function Stop-DockerDesktop {
     #>
 
     try {
-        Get-Process -Name "Docker Desktop*" | Stop-Process -ErrorAction Stop
-        Write-Verbose "Docker Desktop process stopped successfully."
+        Get-Process -Name "*Docker Desktop*" | Stop-Process -ErrorAction Stop
+        Write-Verbose "All Docker Desktop processes have stopped successfully."
     }
     catch {
-        Write-Error "Error stopping Docker Desktop process: $_"
+        Write-Error "Error stopping Docker Desktop processes: $_"
     }
 }
 
